@@ -1,0 +1,13 @@
+[
+  { "id": "dev-1",  "name": "EdgeRouter Pro",   "ip": "192.168.1.1",  "mac": "02:26:39:5B:30:11", "type": "router", "os": "EdgeOS 2.0",     "status": "online",  "parent": null,    "x": 450, "y": 35,  "lastSeen": null },
+  { "id": "dev-2",  "name": "CoreSwitch-1",     "ip": "192.168.1.2",  "mac": "02:26:29:EB:36:02", "type": "switch", "os": "SwitchOS 5.1",   "status": "online",  "parent": "dev-1", "x": 450, "y": 140, "lastSeen": null },
+  { "id": "dev-3",  "name": "AP-Office",        "ip": "192.168.1.20", "mac": "02:2A:7C:19:D0:20", "type": "ap",     "os": "OpenWrt 23.05",  "status": "online",  "parent": "dev-2", "x": 630, "y": 140, "lastSeen": null },
+  { "id": "dev-4",  "name": "AppServer-1",      "ip": "192.168.1.10", "mac": "02:28:38:5E:30:10", "type": "server", "os": "Ubuntu 22.04",   "status": "online",  "parent": "dev-2", "x": 90,  "y": 140, "lastSeen": null },
+  { "id": "dev-5",  "name": "Data-Server",      "ip": "192.168.1.11", "mac": "02:28:38:4E:4A:11", "type": "server", "os": "Debian 12",      "status": "online",  "parent": "dev-2", "x": 90,  "y": 250, "lastSeen": null },
+  { "id": "dev-6",  "name": "Dev-Workstation-1","ip": "192.168.1.50", "mac": "02:5C:00:FF:51:50", "type": "pc",     "os": "Windows 11",     "status": "warning", "parent": "dev-2", "x": 270, "y": 250, "lastSeen": null },
+  { "id": "dev-7",  "name": "Admin-PC",         "ip": "192.168.1.51", "mac": "02:5C:00:A1:62:51", "type": "pc",     "os": "Windows 11",     "status": "online",  "parent": "dev-2", "x": 450, "y": 250, "lastSeen": null },
+  { "id": "dev-8",  "name": "IoT-Sensor-4",     "ip": "192.168.1.70", "mac": "02:EE:0F:1E:A0:70", "type": "iot",    "os": "Firmware 1.4",   "status": "warning", "parent": "dev-2", "x": 630, "y": 250, "lastSeen": null },
+  { "id": "dev-9",  "name": "User-Laptop",      "ip": "192.168.1.25", "mac": "02:3B:5D:C2:19:25", "type": "laptop", "os": "macOS 14",       "status": "online",  "parent": "dev-3", "x": 810, "y": 90,  "lastSeen": null },
+  { "id": "dev-10", "name": "User-Phone",       "ip": "192.168.1.28", "mac": "02:3B:5D:7A:44:28", "type": "phone",  "os": "Android 14",     "status": "online",  "parent": "dev-3", "x": 810, "y": 160, "lastSeen": null },
+  { "id": "dev-11", "name": "WiFi-Cam-2",       "ip": "192.168.1.75", "mac": "02:ED:3A:CE:EC:75", "type": "iot",    "os": "Firmware 3.2",   "status": "offline", "parent": "dev-3", "x": 810, "y": 230, "lastSeen": null }
+]
