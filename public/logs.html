@@ -31,6 +31,9 @@
       <div>
         <p class="eyebrow">NetSentry: Network Monitoring Dashboard</p>
         <h1>Alerts &amp; History</h1>
+        <button id="refreshLogs" type="button">
+            ↻ Refresh Logs
+        </button>
       </div>
     </header>
 
@@ -89,10 +92,10 @@
           <input type="date" id="fromDate">
           <input type="date" id="toDate">
           <select id="logTypeFilter">
-            <option value="all">Event Type</option>
-            <option value="query">Query Slowdown</option>
-            <option value="port">Port Failure</option>
-            <option value="restart">Service Restart</option>
+              <option value="all">Event Type</option>
+              <option value="query">Query Slowdown</option>
+              <option value="port">Port Failure</option>
+              <option value="restart">Service Restart</option>
           </select>
           <input type="text" id="historySearch" placeholder="Search log...">
         </div>

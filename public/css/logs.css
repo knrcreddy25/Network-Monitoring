@@ -304,3 +304,18 @@ td {
         margin-top: 16px;
     }
 }
+#refreshLogs {
+    margin-top: 14px;
+    padding: 10px 16px;
+    border: 1px solid #dbeafe;
+    background: #eff6ff;
+    color: #2563eb;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#refreshLogs:hover {
+    background: #dbeafe;
+}

@@ -1,50 +1,25 @@
+let devices = [];
 
-const devices = [
-    {
-        id: 1,
-        name: "EdgeRouter Pro",
-        ip: "192.168.1.1",
-        type: "router",
-        status: "online"
-    },
-    {
-        id: 2,
-        name: "CoreSwitch-1",
-        ip: "192.168.1.2",
-        type: "switch",
-        status: "online"
-    },
-    {
-        id: 3,
-        name: "AppServer-1",
-        ip: "192.168.1.10",
-        type: "server",
-        status: "online"
-    },
-    {
-        id: 4,
-        name: "Dev-Workstation",
-        ip: "192.168.1.50",
-        type: "pc",
-        status: "offline"
-    },
-    {
-        id: 5,
-        name: "IoT-Sensor",
-        ip: "192.168.1.70",
-        type: "iot",
-        status: "warning"
-    },
-    {
-        id: 6,
-        name: "Office-PC",
-        ip: "192.168.1.51",
-        type: "pc",
-        status: "online"
+async function loadDevices() {
+    try {
+        const response = await fetch("/api/devices");
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch devices");
+        }
+
+        devices = await response.json();
+        createDeviceChart();
+
+        updateDashboard();
+        displayProblemDevices();
+
+        console.log("Devices loaded:", devices);
+
+    } catch (error) {
+        console.error("Error loading devices:", error);
     }
-];
-
-
+}
 
 
 function updateDashboard() {
@@ -74,19 +49,13 @@ function updateDashboard() {
     document.getElementById("monitoredDown").textContent = offline;
 }
 
-updateDashboard();
-
-
-
 
 function createDeviceChart() {
 
     const deviceTypes = {};
 
-    // Count devices by type
     devices.forEach(device => {
         const type = device.type;
-
         deviceTypes[type] = (deviceTypes[type] || 0) + 1;
     });
 
@@ -95,12 +64,18 @@ function createDeviceChart() {
 
     const ctx = document.getElementById("deviceChart");
 
-    new Chart(ctx, {
+    // Remove previous chart before creating another
+    const existingChart = Chart.getChart("deviceChart");
+
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
+    deviceChart = new Chart(ctx, {
         type: "doughnut",
 
         data: {
             labels: labels,
-
             datasets: [{
                 data: counts,
                 backgroundColor: [
@@ -108,7 +83,10 @@ function createDeviceChart() {
                     "#16a34a",
                     "#f59e0b",
                     "#8b5cf6",
-                    "#06b6d4"
+                    "#06b6d4",
+                    "#ec4899",
+                    "#64748b",
+                    "#14b8a6"
                 ],
                 borderWidth: 0
             }]
@@ -117,7 +95,6 @@ function createDeviceChart() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-
             plugins: {
                 legend: {
                     position: "bottom"
@@ -127,133 +104,142 @@ function createDeviceChart() {
     });
 }
 
-createDeviceChart();
 
+let availabilityChart = null;
 
+async function createAvailabilityChart() {
+    try {
+        const response = await fetch("/api/availability?hours=24");
 
-function createAvailabilityChart() {
+        if (!response.ok) {
+            throw new Error("Failed to load availability data");
+        }
 
-    const times = [
-        "10:00", "10:05", "10:10",
-        "10:15", "10:20", "10:25",
-        "10:30", "10:35"
-    ];
+        const history = await response.json();
 
-    // Sample historical availability percentages
-    const availability = [
-        100, 100, 80, 80, 60, 80, 100, 80
-    ];
+        const times = history.map(record =>
+            new Date(record.ts).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit"
+            })
+        );
 
-    const ctx = document.getElementById("availabilityChart");
+        const availability = history.map(record =>
+            record.availability
+        );
 
-    new Chart(ctx, {
-        type: "line",
+        const canvas = document.getElementById("availabilityChart");
 
-        data: {
-            labels: times,
-            datasets: [{
-                label: "Device Availability (%)",
-                data: availability,
-                borderColor: "#2563eb",
-                backgroundColor: "rgba(37, 99, 235, 0.1)",
-                borderWidth: 2,
-                fill: true,
-                tension: 0.3,
-                pointRadius: 4
-            }]
-        },
+        const existingChart = Chart.getChart(canvas);
 
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
+        if (existingChart) {
+            existingChart.destroy();
+        }
 
-            scales: {
-                y: {
-                    min: 0,
-                    max: 100,
-                    ticks: {
-                        callback: value => value + "%"
-                    }
-                }
+        availabilityChart = new Chart(canvas, {
+            type: "line",
+
+            data: {
+                labels: times,
+                datasets: [{
+                    label: "Network Availability (%)",
+                    data: availability,
+                    borderColor: "#2563eb",
+                    backgroundColor: "rgba(37,99,235,0.1)",
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3
+                }]
             },
 
-            plugins: {
-                legend: {
-                    display: false
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        ticks: {
+                            callback: value => value + "%"
+                        }
+                    }
+                },
+
+                plugins: {
+                    legend: {
+                        display: false
+                    }
                 }
             }
-        }
-    });
-}
+        });
 
-createAvailabilityChart();
+        console.log("Availability history loaded:", history);
 
-
-
-const activities = [
-    {
-        title: "Network scan completed",
-        description: "5 devices scanned successfully",
-        time: "10:30 AM",
-        type: "success",
-        icon: "✓"
-    },
-    {
-        title: "Device disconnected",
-        description: "Dev-Workstation · 192.168.1.50",
-        time: "10:25 AM",
-        type: "danger",
-        icon: "!"
-    },
-    {
-        title: "Device health warning",
-        description: "IoT-Sensor · 192.168.1.70",
-        time: "10:20 AM",
-        type: "warning",
-        icon: "!"
-    },
-    {
-        title: "New device connected",
-        description: "AppServer-1 · 192.168.1.10",
-        time: "10:15 AM",
-        type: "info",
-        icon: "+"
+    } catch (error) {
+        console.error("Error loading availability:", error);
     }
-];
-
-function displayRecentActivity() {
-    const container = document.getElementById("recentActivity");
-    container.replaceChildren();
-
-    activities.forEach(activity => {
-        const item = document.createElement("div");
-        item.className = "timeline-item";
-
-        const icon = document.createElement("div");
-        icon.className = `timeline-icon ${activity.type}`;
-        icon.textContent = activity.icon;
-
-        const content = document.createElement("div");
-        content.className = "timeline-content";
-
-        const title = document.createElement("strong");
-        title.textContent = activity.title;
-
-        const description = document.createElement("p");
-        description.textContent = activity.description;
-
-        const time = document.createElement("small");
-        time.textContent = activity.time;
-
-        content.append(title, description, time);
-        item.append(icon, content);
-        container.appendChild(item);
-    });
 }
+
+
+
+async function displayRecentActivity() {
+    const container = document.getElementById("recentActivity");
+
+    try {
+        const response = await fetch("/api/activity");
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch activity");
+        }
+
+        const activities = await response.json();
+
+        container.replaceChildren();
+
+        if (activities.length === 0) {
+            container.textContent = "No recent network events.";
+            return;
+        }
+
+        activities.forEach(activity => {
+            const item = document.createElement("div");
+            item.className = "timeline-item";
+
+            const icon = document.createElement("div");
+            icon.className = `timeline-icon ${activity.type}`;
+            icon.textContent = activity.icon;
+
+            const content = document.createElement("div");
+            content.className = "timeline-content";
+
+            const title = document.createElement("strong");
+            title.textContent = activity.title;
+
+            const description = document.createElement("p");
+            description.textContent = activity.description;
+
+            const time = document.createElement("small");
+            time.textContent = activity.time;
+
+            content.append(title, description, time);
+            item.append(icon, content);
+            container.appendChild(item);
+        });
+
+        console.log("Recent activity loaded:", activities);
+
+    } catch (error) {
+        console.error("Error loading activity:", error);
+        container.textContent = "Unable to load recent activity.";
+    }
+}
+
+
+
 
 displayRecentActivity();
-
-
 
 function displayProblemDevices() {
 
@@ -291,5 +277,8 @@ function displayProblemDevices() {
     });
 }
 
-displayProblemDevices();
+loadDevices();
+createAvailabilityChart();
+displayRecentActivity();
+loadDevices();
 

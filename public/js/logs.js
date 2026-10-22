@@ -1,83 +1,43 @@
-const eventLogs = [
-    {
-        time: "10:48:32 AM",
-        severity: "critical",
-        device: "CoreRouter-A1",
-        message: "High CPU Usage (94%)",
-        duration: "10m 14s"
-    },
-    {
-        time: "10:45:22 AM",
-        severity: "warning",
-        device: "WebServer-04",
-        message: "Connection Timeout",
-        duration: "5m 20s"
-    },
-    {
-        time: "10:42:05 AM",
-        severity: "warning",
-        device: "CoreRouter-A1",
-        message: "Packet Loss Spike",
-        duration: "3m 45s"
-    },
-    {
-        time: "10:39:17 AM",
-        severity: "info",
-        device: "AppServer-02",
-        message: "Network Scan Completed",
-        duration: "1m 03s"
-    },
-    {
-        time: "10:33:44 AM",
-        severity: "critical",
-        device: "DB-Server-01",
-        message: "Database Port Unreachable",
-        duration: "8m 11s"
-    }
-];
+let eventLogs = [];
+let historyLogs = [];
 
-const historyLogs = [
-    {
-        timestamp: "10/26/23 10:26:43",
-        severity: "critical",
-        source: "NetworkSwitch-03",
-        action: "Port Failure",
-        user: "System",
-        description: "Port GigabitEthernet1/0/22 link down."
-    },
-    {
-        timestamp: "10/26/23 10:15:02",
-        severity: "error",
-        source: "DB-Server-01",
-        action: "Query Slowdown",
-        user: "N/A",
-        description: "Select query executed in 12.5s."
-    },
-    {
-        timestamp: "10/25/23 18:42:10",
-        severity: "info",
-        source: "AppServer-02",
-        action: "Service Restart",
-        user: "Admin",
-        description: "Nginx service restarted successfully."
-    },
-    {
-        timestamp: "10/25/23 10:24:23",
-        severity: "info",
-        source: "NetworkSwitch-03",
-        action: "Port Active",
-        user: "System",
-        description: "Port GigabitEthernet1/0/22 restored."
-    },
-    {
-        timestamp: "10/24/23 08:30:55",
-        severity: "critical",
-        source: "CoreRouter-A1",
-        action: "Connection Drop",
-        user: "System",
-        description: "WAN uplink disconnected unexpectedly."
+async function loadEventLogs() {
+    try {
+        const response = await fetch("/api/logs/events");
+
+        if (!response.ok) {
+            throw new Error("Failed to load event logs");
+        }
+
+        eventLogs = await response.json();
+
+        filterEventLogs();
+
+        console.log("Event logs loaded:", eventLogs);
+
+    } catch (error) {
+        console.error("Event log error:", error);
     }
-];
+}
+
+async function loadHistoryLogs() {
+    try {
+        const response = await fetch("/api/logs/history");
+
+        if (!response.ok) {
+            throw new Error("Failed to load history");
+        }
+
+        historyLogs = await response.json();
+
+        filterHistoryLogs();
+
+        console.log("History loaded:", historyLogs);
+
+    } catch (error) {
+        console.error("History error:", error);
+    }
+}
 
 function badgeClass(level) {
     if (level === "critical") return "badge critical";
@@ -162,11 +122,19 @@ function filterHistoryLogs() {
     renderHistoryLogs(filtered);
 }
 
+document.getElementById("refreshLogs")
+    .addEventListener("click", async () => {
+        await Promise.all([
+            loadEventLogs(),
+            loadHistoryLogs()
+        ]);
+    });
+
 document.getElementById("eventSearch").addEventListener("input", filterEventLogs);
 document.getElementById("severityFilter").addEventListener("change", filterEventLogs);
 
 document.getElementById("historySearch").addEventListener("input", filterHistoryLogs);
 document.getElementById("logTypeFilter").addEventListener("change", filterHistoryLogs);
 
-renderEventLogs(eventLogs);
-renderHistoryLogs(historyLogs);
+loadEventLogs();
+loadHistoryLogs();

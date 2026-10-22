@@ -6,7 +6,7 @@ const STATUS_LABEL = { online: 'Online', warning: 'Warning', offline: 'Offline' 
 let devices = [];
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const detailsUrl = (id) => `device-details.html?id=${encodeURIComponent(id)}`;
+
 
 function toast(msg) { $('#toast').textContent = msg; }
 
@@ -31,6 +31,9 @@ async function scanNetwork() {
   try {
     const res = await fetch('/api/scan', { method: 'POST' });
     const data = await res.json();
+    if (!res.ok) {
+     throw new Error(`Scan failed: HTTP ${res.status}`);
+    }
     devices = data.devices;
     render();
     toast(`Scan finished at ${new Date(data.scannedAt).toLocaleTimeString()}.`);
@@ -41,15 +44,40 @@ async function scanNetwork() {
   }
 }
 
+
 async function scanDevice(id) {
-  try {
-    const res = await fetch(`/api/devices/${encodeURIComponent(id)}/scan`, { method: 'POST' });
-    const d = await res.json();
-    toast(`${d.name} scanned: ${STATUS_LABEL[d.status]}.`);
-  } catch (err) {
-    toast('Device scan failed.');
-  }
+    try {
+        const res = await fetch(
+            `/api/devices/${encodeURIComponent(id)}/scan`,
+            { method: "POST" }
+        );
+
+        if (!res.ok) {
+            throw new Error("Device scan failed");
+        }
+
+        const updatedDevice = await res.json();
+
+        const index = devices.findIndex(
+            d => d.id === updatedDevice.id
+        );
+
+        if (index !== -1) {
+            devices[index] = updatedDevice;
+        }
+
+        render();
+
+        toast(
+            `${updatedDevice.name}: ${STATUS_LABEL[updatedDevice.status]}`
+        );
+
+    } catch (error) {
+        console.error(error);
+        toast("Device scan failed.");
+    }
 }
+
 
 // ---------- Map ----------
 function linkPath(p, c) {
@@ -76,7 +104,7 @@ function renderMap() {
   const links = devices.filter((d) => byId[d.parent]).map((d) =>
     `<path class="link${d.status === 'offline' ? ' off' : ''}" d="${linkPath(byId[d.parent], d)}"/>`);
   const nodes = devices.map((d) => `
-    <g class="node" tabindex="0" role="link" data-id="${esc(d.id)}" aria-label="${esc(d.name)}, ${STATUS_LABEL[d.status]}. Open details"
+    <g class="node" aria-label="${esc(d.name)}, ${STATUS_LABEL[d.status]}"
        transform="translate(${d.x - NODE_W / 2},${d.y - NODE_H / 2})">
       <rect width="${NODE_W}" height="${NODE_H}" rx="8"/>
       <text class="name" x="12" y="19">${esc(d.name)}</text>
@@ -100,7 +128,12 @@ function renderTable() {
         <td>${TYPE_LABEL[d.type] || esc(d.type)}</td>
         <td>${esc(d.os)}</td>
         <td><span class="pill ${d.status}"><span>${STATUS_LABEL[d.status]}</span></span></td>
-        <td><a href="${detailsUrl(d.id)}">Details</a> &nbsp;|&nbsp; <button class="linkbtn" type="button" data-scan="${esc(d.id)}">Scan</button></td>
+        <td>
+            <button class="linkbtn" type="button"
+              data-scan="${esc(d.id)}">
+              Scan
+            </button>
+        </td>
       </tr>`).join('')
     : `<tr><td colspan="7">No devices match “${esc(q)}”. Clear the filter or run a scan.</td></tr>`;
 }
@@ -120,13 +153,6 @@ $('#rows').addEventListener('click', (e) => {
   const btn = e.target.closest('[data-scan]');
   if (btn) scanDevice(btn.dataset.scan);
 });
-$('#map').addEventListener('click', (e) => {
-  const node = e.target.closest('.node');
-  if (node) location.href = detailsUrl(node.dataset.id);
-});
-$('#map').addEventListener('keydown', (e) => {
-  const node = e.target.closest('.node');
-  if (node && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); location.href = detailsUrl(node.dataset.id); }
-});
+
 
 loadDevices();
