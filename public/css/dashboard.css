@@ -492,3 +492,77 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* Sidebar layout */
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Account and Logout fixed at bottom */
+
+.sidebar-bottom {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.account-link,
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 9px;
+
+    background: transparent;
+    border: none;
+    text-decoration: none;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    color: #475569;
+    cursor: pointer;
+
+    transition: background 0.2s;
+}
+
+.account-link:hover {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.logout-btn {
+    color: #dc2626;
+}
+
+.logout-btn:hover {
+    background: #fef2f2;
+}
+
+.side-icon {
+    font-size: 19px;
+    width: 22px;
+    text-align: center;
+}
+
+@media (max-width: 800px) {
+    .sidebar {
+        height: auto;
+        min-height: 0;
+    }
+
+    .sidebar-bottom {
+        margin-top: 16px;
+    }
+}
